@@ -1,0 +1,103 @@
+class Main {
+
+    function void main() {
+
+        var int boardSize;
+        var Board board;
+        var int keyPress;
+        var bool inputLock;
+
+        var int iterator;
+        var boolean turn;
+
+        let boardSize = 192;
+        let board = Board.new(boardSize);
+        
+        do board.init(2);
+        do Main.printBanner();
+        do Output.printString("Current board size: ");
+        do Output.printInt(boardSize);
+        do Output.println();
+        do Output.printString("Press Space to Begin.");
+
+        // Loop before starting
+        let keyPress = 0;
+        while (~(keyPress = 32)) {
+            let keyPress = Keyboard.keyPressed();
+        }
+
+        // Clear start text
+        let iterator = 0;
+        while (iterator < 21) {
+            do Output.backSpace();
+            let iterator = iterator + 1;
+        }
+        do Output.printString("White's Turn");
+
+        do board.renderHover();
+
+        let inputLock = true;
+
+        while ((~(keyPress=140)) & (~(board.isGameOver()))) {
+
+            let keyPress = Keyboard.keyPressed();
+
+            if (~inputLock) {
+                if (keyPress = 130) {
+                    do board.moveHover(1); //left
+                }
+                if (keyPress = 131) {
+                    do board.moveHover(2); // up
+                }
+                if (keyPress = 132) {
+                    do board.moveHover(3); // right
+                }
+                if (keyPress = 133) {
+                    do board.moveHover(4); // down
+                }
+                if (keyPress = 32) {
+                    do board.selectSquare();
+                }
+                if (~(keyPress = 0)) {
+
+                    let inputLock = true;
+                }
+            }
+            if (keyPress = 0) {
+                let inputLock = false;
+            }
+        }
+
+        let iterator = 0;
+        while (iterator < 12) {
+            do Output.backSpace();
+            let iterator = iterator + 1;
+        }
+
+        do Output.println();
+
+        if (board.isGameOver()) {
+            if (board.turn()) {
+                do Output.printString("Game over! White wins!");
+            } else {
+                do Output.printString("Game over! Black wins!");
+            }
+        } else {
+            do Output.printString("Game quit. Thanks for playing!");
+        }
+
+        do board.dispose();
+        return;
+
+    }
+
+    function void printBanner() {
+        do Output.printString("Welcome to Chess!");
+        do Output.println();
+        do Output.printString("-----------------");
+        do Output.println();
+
+        return;
+    }
+
+}

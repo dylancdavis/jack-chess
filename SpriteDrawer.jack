@@ -1,0 +1,36 @@
+class SpriteDrawer {
+
+    field int x;
+    field int y;
+
+    constructor SpriteDrawer new(int aX, int aY) {
+        let x = aX;
+        let y = aY;
+        return this;
+    }
+
+    method void pixel(int dX, int dY) {
+        do Screen.drawPixel(x+dX,y+dY);
+        return;
+    }
+
+    method void line(int x1, int y1, int x2, int y2) {
+        do Screen.drawLine(x+x1,y+y1,x+x2,y+y2);
+        return;
+    }
+
+    method void rect(int x1, int y1, int x2, int y2) {
+        do Screen.drawRectangle(x+x1,y+y1,x+x2,y+y2);
+        return;
+    }
+
+    method void circle(int x1, int y1, int r) {
+        do Screen.drawCircle(x+x1,y+y1,r);
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

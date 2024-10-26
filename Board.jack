@@ -1,0 +1,508 @@
+class Board {
+
+    // Squares represented from top left to bottom right, 0-64.
+    field Array pieces;
+    field int boardSize;
+    field int startX;
+    field int startY; 
+    field int squareSize;
+
+    field Square hoverSquare;
+    field Square selectedSquare;
+    field Square targetSquare;
+
+    field boolean hoverColor;
+    
+    // False = White, True = Black;
+    field boolean turn;
+
+    // Called whenever a replaced piece is a king.
+    field boolean gameOver;
+
+    constructor Board new(int size) {
+        var int iterator;
+
+        let pieces = Array.new(64);
+        let boardSize = size;
+        let squareSize = boardSize/8;
+        let startX = 384-(size/2);
+        let startY = 128-(size/2);
+        let hoverColor = false;
+        let gameOver = false;
+
+        let hoverSquare = Square.new(startX,startY,boardSize,27);
+        let selectedSquare = false;
+
+
+        // Initialize pieces to hold all false values
+        let iterator = 0;
+        while (iterator < 64) {
+            let pieces[iterator] = false;
+            let iterator = iterator+1;
+        }
+
+        return this;
+        
+    }
+
+    method boolean isGameOver() {
+        return gameOver;
+    }
+
+    method boolean turn() {
+        return turn;
+    }
+
+    method void init(int borderSize) {
+
+        // Draws background rectangle
+        do Screen.setColor(true);
+        do Screen.drawRectangle((startX-borderSize), 
+                                (startY-borderSize), 
+                                (startX+boardSize+borderSize), 
+                                (startY+boardSize+borderSize));
+
+        // Populate pieces in array and render board
+        do populatePieces();
+        do renderBoard();
+
+        return;
+
+    }
+
+    method void populatePieces() {
+
+        var int iterator;
+
+        // Initialize Pawns along their Rows
+        let iterator = 0;
+        while (iterator < 8) {
+            let pieces[iterator+8] = Piece.new(true,1);
+            let pieces[iterator+48] = Piece.new(false,1);
+            let iterator = iterator+1;
+        }
+
+        // Initialize Rooks in corners
+        let pieces[0] = Piece.new(true,2);
+        let pieces[7] = Piece.new(true,2);
+        let pieces[56] = Piece.new(false,2);
+        let pieces[63] = Piece.new(false,2);
+
+        // Initialize Knights
+        let pieces[1] = Piece.new(true,3);
+        let pieces[6] = Piece.new(true,3);
+        let pieces[57] = Piece.new(false,3);
+        let pieces[62] = Piece.new(false,3);
+
+        // Initialize Bishops
+        let pieces[2] = Piece.new(true,4);
+        let pieces[5] = Piece.new(true,4);
+        let pieces[58] = Piece.new(false,4);
+        let pieces[61] = Piece.new(false,4);
+
+        // Initialize Queens
+        let pieces[3] = Piece.new(true,5);
+        let pieces[59] = Piece.new(false,5);
+
+        // Initialize Kings
+        let pieces[4] = Piece.new(true,6);
+        let pieces[60] = Piece.new(false,6);
+
+
+        return;
+
+    }
+
+    method void renderBoard() {
+
+        var int squareNum;
+        var boolean squareColor;
+        var int currX;
+        var int currY;
+
+        var int row;
+        var int column;
+
+        var Piece p;
+
+        let squareNum = 0;
+        let row = 0;
+        let currY = startY;
+        let squareColor = false;
+
+
+        while (row < 8) {
+            let row = row+1;
+        
+            let currX = startX;
+            let column = 0;
+
+            while (column < 8) {
+                let column = column+1;
+            
+                // Render appropriate rectangle color
+                do Screen.setColor(squareColor);
+                do Screen.drawRectangle(currX, currY, (currX+squareSize-1), (currY+squareSize-1));
+
+                // Render piece, if the space has one
+                if (~(pieces[squareNum] = false)) {
+                    let p = pieces[squareNum];
+                    do p.render(currX,currY);
+                }
+                
+                let currX = currX+squareSize;
+                let squareColor = ~squareColor;
+                let squareNum = squareNum+1;
+            }
+            let currY = currY+squareSize;
+            let squareColor = ~squareColor;  
+        }
+        return;
+
+    }
+
+    method void moveHover(int direction) {
+
+        var int row;
+        var int column;
+
+        do renderSquare(hoverSquare);
+
+        let row = hoverSquare.row();
+        let column = hoverSquare.column();
+
+        if ((direction = 1) & (column > 0)) { // left
+            do hoverSquare.shift(-1);
+        }
+        if ((direction = 2) & (row > 0)) { // up
+            do hoverSquare.shift(-8);
+        }
+        if ((direction = 3) & (column < 7)) { // right
+            do hoverSquare.shift(1);
+        }
+        if ((direction = 4) & (row < 7)) { // down
+            do hoverSquare.shift(8);
+        }
+        
+        do renderHover();
+
+        return;
+        
+
+    }
+
+    method void renderSquare(Square square) {
+        
+        var int x;
+        var int y;
+        var boolean color;
+        var Piece p;
+
+        let x = square.x();
+        let y = square.y();
+        let color = square.color();
+
+        do Screen.setColor(color);
+        do Screen.drawRectangle(x,y,x+squareSize-1,y+squareSize-1);
+
+        if (~(pieces[square.num()] = false)) {
+            let p = pieces[square.num()];
+            do p.render(x,y);
+        }
+
+        if (~(selectedSquare = false)) {
+            if (square.num() = selectedSquare.num()) {
+                do renderSelect();
+            }
+        }
+
+        return;
+
+    }
+
+    method void renderHover() {
+        var int row;
+        var int column;
+        var int x;
+        var int y;
+        var boolean color;
+
+        let row = hoverSquare.row();
+        let column = hoverSquare.column();
+        let x = hoverSquare.x()+(squareSize/2);
+        let y = hoverSquare.y()+(squareSize/2);
+        let color = hoverSquare.color();
+
+        do Screen.setColor(~hoverColor);
+        do Screen.drawCircle(x,y,6);
+        do Screen.setColor(hoverColor);
+        do Screen.drawCircle(x,y,4);
+        do Screen.setColor(~hoverColor);
+        do Screen.drawCircle(x,y,2);
+
+        return;
+
+    }
+
+    method void selectSquare() {
+        var int num;
+
+
+        // Runs if square is already selected
+        if (~(selectedSquare = false)) {
+            if (selectedSquare.num() = hoverSquare.num()) {
+                // Deselecting current square
+                do selectedSquare.dispose();
+                let selectedSquare = false;
+                do renderSquare(hoverSquare);
+                do renderHover();
+            } else {
+                // Attempt selecting other square
+                if (validMove()) {
+                    do movePiece();
+                }
+            }
+        } else {
+
+            if (~(validSelect())) {
+                return;
+            }
+            
+            let selectedSquare = Square.new(startX,startY,boardSize,hoverSquare.num());
+            do renderSelect();
+        }
+        return;
+    }
+
+    method boolean validSelect() {
+        var Piece p;
+        var int num;
+
+        let num = hoverSquare.num();
+        let p = pieces[num];
+
+        if (p = false) {
+            return false;
+        }
+        if (~(p.color() = turn)) {
+            return false;
+        }
+        return true;
+    }
+
+    method boolean validMove() {
+
+        var int tNum; // Square num of target
+        var int sNum; // Square num of selected
+        var Piece tP; // Piece at target square
+        var Piece sP; // Piece at selected square
+
+        var int dx; // Change from sel --> target
+        var int dy; // change from sel --> target
+        
+
+        let tNum = hoverSquare.num();
+        let tP = pieces[tNum];
+
+        let sNum = selectedSquare.num();
+        let sP = pieces[sNum];
+
+        let dx = hoverSquare.column() - selectedSquare.column();
+        let dy = hoverSquare.row() - selectedSquare.row();
+        
+        // Check square is not occupied by same team
+        if (~(tP = false)) {
+            if (tP.color() = turn) {
+                return false;
+            }
+        }
+
+        
+        // Pawn Moving Logic
+        if (sP.type() = 1) {
+
+            // White turn for double moving
+            if ((~(turn)) & ((dy=-2))) {
+                // Valid if not changing x and also not moved yet
+                return (sP.notMoved() & (dx=0));
+            }
+
+            // Black turn for double moving
+            if (((turn)) & ((dy=2))) {
+                // Valid if not changing x and also not moved yet
+                return (sP.notMoved() & (dx=0));
+            }
+
+            // White turn and not moving up one row
+            if ((~(turn)) & (~(dy=-1))) {
+                return false;
+            }
+
+            // Black turn and not moving down one row
+            if ((turn) & (~(dy=1))) {
+                return false;
+            }
+
+            // Moving straight
+            if (dx=0) {
+                // Must be empty
+                return (tP = false);
+            } else {
+                // Moving diagonally
+                if ((dx = -1) | (dx = 1)) {
+                    // Must have piece (of opposite color)
+                    return (~(tP = false));
+                }
+            }
+            return false;
+        }
+
+        // Check that the path is valid
+        // Only for non-knight pieces
+        if (~(sP.type() = 3)) {
+            // Make sure path is straight line
+            if (~(pathNormal(dx,dy))) {
+                return false;
+            } else {
+                // And that no pieces are in between
+                if (~(pathOpen(dx,dy))) {
+                    return false;
+                }
+            }
+        }
+
+        // All other pieces move the same way, with minor restriction variations
+        // Regardless of color. So simply check that they conform to this
+        return sP.isValidMove(dx, dy);
+    }
+
+    method boolean pathNormal(int dx, int dy) {
+        if ((dx = 0) | (dy = 0)) {
+            return true;
+        }
+        if ((dx = dy) | (dx = (-dy))) {
+            return true;
+        }
+        return false;
+
+    }
+
+    method boolean pathOpen(int dx, int dy) {
+
+        var int startNum;
+
+        var int xInc;
+        var int yInc;
+
+        let xInc = Misc.signum(dx);
+        let yInc = Misc.signum(dy);
+
+        let startNum = selectedSquare.num() + xInc + (yInc*8);
+
+        while (~(startNum = hoverSquare.num())) {
+            if (~(pieces[startNum] = false)) {
+                return false;
+            }
+            let startNum = startNum + xInc + (yInc*8);
+        }
+        return true;
+
+    }
+
+    method void renderSelect() {
+        var int x;
+        var int y;
+        var int iterator;
+        var boolean enter;
+
+        let x = selectedSquare.x();
+        let y = selectedSquare.y();
+
+        if (selectedSquare.color()) {
+            do Screen.setColor(false);
+        } else {
+            do Screen.setColor(true);
+        }
+
+
+        let iterator = 0;
+        let enter = true;
+
+        while (enter) {
+
+            do Screen.drawPixel(x+(iterator*2),y); // top border
+            do Screen.drawPixel(x+(iterator*2)+1,y+1); // top border 2
+
+            do Screen.drawPixel(x+(iterator*2)+1,y+squareSize-1); // bottom
+            do Screen.drawPixel(x+(iterator*2),y+squareSize-2); // bottom
+            
+            do Screen.drawPixel(x,y+(iterator*2)); // left
+            do Screen.drawPixel(x+1,y+(iterator*2)+1); // left 2
+
+            do Screen.drawPixel(x+squareSize-1,y+(iterator*2)+1); // right
+            do Screen.drawPixel(x+squareSize-2,y+(iterator*2)); // right 2
+
+            let iterator = iterator+1;
+            let enter = (iterator < ((squareSize/2)-1));
+        }
+        return;
+    }
+
+    method void movePiece() {
+
+        var Piece sP;
+        var Piece tP;
+        var int selNum;
+        var int targetNum;
+        var int iterator;
+
+        let selNum = selectedSquare.num();
+        let targetNum = hoverSquare.num();
+        let sP = pieces[selNum];
+        let tP = pieces[targetNum];
+        
+        do sP.setToMoved();
+
+        if (~(tP = false)) {
+            if (tP.type() = 6) {
+                let gameOver = true;
+            }
+        }
+        
+        let pieces[selNum] = false;
+        do selectedSquare.dispose();
+        let selectedSquare = false;
+
+        let pieces[targetNum] = sP;
+        let turn = ~turn;
+        do renderBoard();
+
+        // Update turn text
+        let iterator = 0;
+        while (iterator < 12) {
+            do Output.backSpace();
+            let iterator = iterator + 1;
+            }
+        if (turn) {
+            do Output.printString("Black's Turn");
+        } else {
+            do Output.printString("White's Turn");
+        }
+
+        return;
+
+
+
+
+    }
+
+    method void dispose() {
+        do hoverSquare.dispose();
+        do pieces.dispose();
+        do Memory.deAlloc(this);
+        return;
+
+        // TODO: Add code for disposing of individual pieces.
+    }
+
+}

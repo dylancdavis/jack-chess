@@ -1,0 +1,50 @@
+class Square {
+
+    field int startX;
+    field int startY;
+    field int squareSize;
+
+    field int num;
+    field int row;
+    field int column;
+    field int color;
+    field int x;
+    field int y;
+
+    constructor Square new(int aX, int aY, int boardSize, int aNum) {
+        let startX = aX;
+        let startY = aY;
+        let squareSize = boardSize/8;
+        do setNum(aNum);
+        return this;
+    }
+
+    method void setNum(int aNum) {
+        let num = aNum;
+        let row = num/8;
+        let column = Misc.modulo(num,8);
+        let color = Misc.modulo((row+column),2);
+        let x = startX + (column*squareSize);
+        let y = startY + (row*squareSize);
+        return;
+    }
+
+    method void shift(int aNum) {
+        do setNum(num + aNum);
+        return;
+    }
+
+    method int num() { return num; }
+    method int row() { return row; }
+    method int column() { return column; }
+    
+    method boolean color() { return color; }
+    method int x() { return x;  }
+    method int y() { return y; }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

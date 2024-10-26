@@ -1,0 +1,335 @@
+class Piece {
+
+    field boolean color;
+    field int type;
+    field boolean notMoved;
+    // 1 = Pawn
+    // 2 = Rook
+    // 3 = Knight
+    // 4 = Bishop
+    // 5 = Queen
+    // 6 = King
+
+    constructor Piece new(boolean aColor, int aType) {
+        let color = aColor;
+        let type = aType;
+        let notMoved = true;
+        return this;
+    }
+
+    method boolean color() {
+        return color;
+    }
+
+    method int type() {
+        return type;
+    }
+
+    method boolean notMoved() {
+        return notMoved;
+    }
+
+    method void setToMoved() {
+        let notMoved = false;
+        return;
+    }
+
+    // Valid move from selected(col, row) to target(col, row)
+    method boolean isValidMove(int dx, int dy) {
+
+        if (type = 2) {
+            return ((dx = 0) | (dy = 0));
+        }
+        if (type = 3) {
+            if ((dx = 1) | (dx = -1)) {
+                return ((dy = 2) | (dy = -2));
+            }
+            if ((dx = 2) | (dx = -2)) {
+                return ((dy = 1) | (dy = -1));
+            }
+            return false;
+        }
+        if (type = 4) {
+            // bishop  logic
+            return ((dx = dy) | (dx = (-dy)));
+        }
+        if (type = 5) {
+            // queen logic
+            return (((dx = dy) | (dx = (-dy))) | ((dx = 0) | (dy = 0)));
+        }
+        if (type = 6) {
+            // king logic
+            return (((dx < 2) & (dx > -2)) & ((dy < 2) & (dy > -2)));
+        }
+        return false;
+
+    }
+
+    method void render(int x, int y) {
+        if (type = 1) {
+            do Piece.renderPawn(x,y,color);
+        }
+        if (type = 2) {
+            do Piece.renderRook(x,y,color);
+        }
+        if (type = 3) {
+            do Piece.renderKnight(x,y,color);
+        }
+        if (type = 4) {
+            do Piece.renderBishop(x,y,color);
+        }
+        if (type = 5) {
+            do Piece.renderQueen(x,y,color);
+        }
+        if (type = 6) {
+            do Piece.renderKing(x,y,color);
+        }
+        return;
+    }
+
+    function void renderPawn(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // Background
+        do Screen.setColor(~aColor);
+        do draw.line(9,5,14,5);
+        do draw.rect(8,6,15,20);
+        do draw.rect(7,7,16,12);
+        do draw.rect(7,14,16,20);
+
+        // Body
+        do Screen.setColor(aColor);
+        do draw.rect(10,6,13,19);
+        do draw.rect(9,7,14,12);
+        do draw.rect(8,8,15,11);
+        do draw.line(9,14,14,14);
+        do draw.line(8,15,15,15);
+        do draw.rect(8,18,15,19);
+        do draw.line(9,17,14,17);
+
+        // Shine :)
+        do Screen.setColor(~aColor);
+        do draw.line(10,9,11,8);
+
+
+        return;
+    }
+
+    function void renderRook(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // Rook Background
+        do Screen.setColor(~aColor);
+        do draw.rect(4,2,19,8);
+        do draw.rect(6,2,17,10);
+        do draw.pixel(5,9);
+        do draw.pixel(18,9);
+        do draw.rect(8,11,15,13);
+        do draw.rect(7,14,15,21);
+        do draw.rect(6,15,17,21);
+        do draw.rect(5,17,18,21);
+
+        // Rook Body
+        do Screen.setColor(aColor);
+        do draw.rect(6,18,17,20); // base part 1
+        do draw.rect(7,16,16,17); // base part 2
+        do draw.line(8,15,15,15); // base part 3
+        do draw.rect(9,3,14,14); // connecting stem + center top
+        do draw.rect(7,5,16,9); // main top
+        do draw.rect(5,3,6,7); // left flare 1
+        do draw.rect(6,4,7,8); // left flare 2
+        do draw.rect(17,3,18,7); // right flare 1 (illegal)
+        do draw.rect(16,4,17,8); // right flare 2. (illegal)
+
+        // Fix Hole, add shine
+        do Screen.setColor(~aColor);
+        do draw.rect(11,3,12,4); // add hole
+        do draw.line(6,6,7,7); // shine
+
+
+
+        return;
+
+    }
+
+    function void renderKnight(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // Knight Background
+        do Screen.setColor(~aColor);
+        do draw.rect(5,17,18,21);
+        do draw.rect(6,15,17,16);
+        do draw.line(8,14,16,14);
+        do draw.rect(9,2,17,13);
+        do draw.line(18,4,18,12);
+        do draw.line(8,3,8,11);
+        do draw.rect(6,4,7,10);
+        do draw.line(5,5,5,9);
+
+        // Knight Body
+        do Screen.setColor(aColor);
+        do draw.rect(6,18,17,20);
+        do draw.rect(7,16,16,17);
+        do draw.line(9,15,15,15);
+        do draw.rect(10,3,15,14);
+        do draw.line(16,4,16,12);
+        do draw.line(17,5,17,11);
+        do draw.line(9,4,9,10);
+        do draw.rect(7,5,8,9);
+        do draw.line(6,6,6,8);
+
+        // Knight Eye & Mane
+        do Screen.setColor(~aColor);
+        do draw.line(9,7,11,7);
+        do draw.line(10,6,10,8);
+        do draw.line(16,6,17,6);
+        do draw.line(16,8,17,8);
+        do draw.line(16,10,17,10);
+
+
+
+        return;
+
+    }
+
+    function void renderBishop(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // Bishop Background
+        do Screen.setColor(~aColor);
+        do draw.rect(5,17,18,21);
+        do draw.rect(6,15,17,16);
+        do draw.line(8,14,15,14);
+        do draw.rect(7,12,16,13);
+        do draw.rect(6,7,17,11);
+        do draw.rect(7,5,16,6);
+        do draw.line(8,4,14,4);
+        do draw.line(9,3,13,3);
+        do draw.line(10,2,13,2);
+
+        // Bishop Body
+        do Screen.setColor(aColor);
+        do draw.rect(6,18,17,20);
+        do draw.rect(7,16,16,17);
+        do draw.rect(9,13,14,15);
+        do draw.rect(8,11,15,12);
+        do draw.line(7,10,16,10);
+        do draw.rect(7,8,12,9);
+        do draw.rect(8,6,12,7);
+        do draw.line(9,5,12,5);
+        do draw.line(10,4,12,4);
+        do draw.line(11,3,12,3);
+        do draw.rect(14,6,15,9);
+        do draw.line(16,8,16,9);
+
+        // Shine
+        do Screen.setColor(~aColor);
+        do draw.pixel(10,6);
+        do draw.line(9,7,9,8);
+
+
+
+        return;
+
+
+
+    }
+
+    function void renderQueen(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // Queen Background
+        do Screen.setColor(~aColor);
+        do draw.rect(5,17,18,21);
+        do draw.rect(6,5,17,16);
+        do draw.line(5,12,18,12);
+        do draw.rect(4,9,19,11);
+        do draw.rect(3,5,20,8);
+        do draw.line(4,4,7,4);
+        do draw.line(16,4,19,4);
+        do draw.rect(9,3,14,4);
+        do draw.line(10,2,13,2);
+
+        // Queen Body
+        do Screen.setColor(aColor);
+        do draw.rect(6,18,17,20);
+        do draw.rect(7,16,16,17);
+        do draw.rect(9,8,14,15);
+        do draw.line(8,14,15,14);
+        do draw.rect(7,9,16,13);
+        do draw.line(6,11,17,11);
+        do draw.rect(5,5,6,10);
+        do draw.rect(17,5,18,10);
+        do draw.rect(4,6,7,7);
+        do draw.rect(16,6,19,7);
+        do draw.line(10,7,13,7);
+        do draw.rect(11,3,12,6);
+        do draw.rect(10,4,13,5);
+
+        // Shine
+        do Screen.setColor(~aColor);
+        do draw.pixel(11,4);
+        do draw.pixel(5,6);
+        do draw.pixel(17,6);
+        do draw.line(10,9,11,8);
+
+        return;
+
+    }
+
+    function void renderKing(int x, int y, boolean aColor) {
+
+        var SpriteDrawer draw;
+        let draw = SpriteDrawer.new(x,y);
+
+        // King Background
+        do Screen.setColor(~aColor);
+        do draw.rect(5,17,18,21);
+        do draw.line(6,16,17,16);
+        do draw.line(7,15,16,15);
+        do draw.line(8,14,15,14);
+        do draw.line(6,13,17,13);
+        do draw.rect(5,9,18,12);
+        do draw.rect(7,5,16,8);
+        do draw.rect(10,2,13,4);
+
+        // King Body
+        do Screen.setColor(aColor);
+        do draw.rect(6,18,17,20);
+        do draw.line(7,17,16,17);
+        do draw.line(8,16,15,16);
+        do draw.rect(10,14,13,15);
+        do draw.line(9,13,14,13);
+        do draw.line(7,12,16,12);
+        do draw.rect(6,10,17,11);
+        do draw.rect(11,3,12,9);
+        do draw.rect(8,6,15,7);
+
+        // Shine
+        do Screen.setColor(~aColor);
+        do draw.pixel(9,17);
+        do draw.line(8,18,8,19);
+
+        return;
+
+    }
+
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+
+        // TODO: Add code for disposing of individual pieces.
+    }
+
+}
